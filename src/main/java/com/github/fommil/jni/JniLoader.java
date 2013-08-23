@@ -59,7 +59,10 @@ public final class JniLoader {
     for (String path : paths) {
       for (String libPath : javaLibPath) {
         if (loaded) return;
-        liberalLoad(new File(libPath).getAbsolutePath() + "/" + path);
+        File file = new File(libPath, path);
+        log.finest("checking " + file.getAbsolutePath());
+        if (file.exists())
+          liberalLoad(file.getAbsolutePath() + "/" + path);
       }
       if (loaded) return;
       File extracted = extract(path);
@@ -73,7 +76,7 @@ public final class JniLoader {
 
   private static void liberalLoad(String path) {
     try {
-      log.fine("attempting to load " + path);
+      log.finest("attempting to load " + path);
       System.load(path);
       log.info("successfully loaded " + path);
       loaded = true;
