@@ -78,7 +78,7 @@ public final class JniLoader {
       log.info("successfully loaded " + path);
       loaded = true;
     } catch (UnsatisfiedLinkError e) {
-      log.log(FINE, "skipping load of " + path);
+      log.log(FINE, "skipping load of " + path, e);
     } catch (SecurityException e) {
       log.log(FINE, "skipping load of " + path, e);
     } catch (Throwable e) {
