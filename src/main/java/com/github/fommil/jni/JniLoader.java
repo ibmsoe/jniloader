@@ -82,6 +82,15 @@ public final class JniLoader {
       loaded = true;
     } catch (UnsatisfiedLinkError e) {
       log.log(FINE, "skipping load of " + path, e);
+      String tmpdir = System.getProperty("java.io.tmpdir");
+      if (tmpdir != null && !tmpdir.isEmpty() && path.startsWith(tmpdir)) {
+        log.log(FINE, "deleting " + path);
+        try {
+          new File(path).delete();
+        } catch (Exception e2) {
+          log.info("failed to delete " + path);
+        }
+      }
     } catch (SecurityException e) {
       log.log(FINE, "skipping load of " + path, e);
     } catch (Throwable e) {
@@ -90,7 +99,6 @@ public final class JniLoader {
   }
 
   private static File extract(String path) {
-    File file = null;
     try {
       long start = System.currentTimeMillis();
       URL url = JniLoader.class.getResource("/" + path);
@@ -99,7 +107,7 @@ public final class JniLoader {
       log.fine("attempting to extract " + url);
 
       @Cleanup InputStream in = JniLoader.class.getResourceAsStream("/" + path);
-      file = file(path);
+      File file = file(path);
       deleteOnExit(file);
 
       log.info("extracting " + url + " to " + file.getAbsoluteFile());
@@ -115,13 +123,6 @@ public final class JniLoader {
     } catch (Throwable e) {
       if (e instanceof SecurityException || e instanceof IOException) {
         log.log(INFO, "skipping extraction of " + path, e);
-        if (file != null) {
-          try {
-            file.delete();
-          } catch (Throwable e2) {
-            log.log(INFO, "unable to delete " + file);
-          }
-        }
         return null;
       } else throw new ExceptionInInitializerError(e);
     }
