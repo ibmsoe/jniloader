@@ -57,6 +57,7 @@ public final class JniLoader {
     String[] javaLibPath = System.getProperty("java.library.path").split(File.pathSeparator);
 
     for (String path : paths) {
+      log.info("JNI LIB = " + path);
       for (String libPath : javaLibPath) {
         if (loaded) return;
         File file = new File(libPath, path);
