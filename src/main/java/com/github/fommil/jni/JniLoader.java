@@ -57,6 +57,7 @@ public final class JniLoader {
     String[] javaLibPath = System.getProperty("java.library.path").split(File.pathSeparator);
 
     for (String path : paths) {
+      if (loaded) return;
       log.info("JNI LIB = " + path);
       for (String libPath : javaLibPath) {
         if (loaded) return;
@@ -65,7 +66,6 @@ public final class JniLoader {
         if (file.exists())
           liberalLoad(file.getAbsolutePath() + "/" + path);
       }
-      if (loaded) return;
       File extracted = extract(path);
       if (extracted != null)
         liberalLoad(extracted.getAbsolutePath());
