@@ -58,7 +58,7 @@ public final class JniLoader {
 
     for (String path : paths) {
       if (loaded) return;
-      log.info("JNI LIB = " + path);
+      log.config("JNI LIB = " + path);
       for (String libPath : javaLibPath) {
         if (loaded) return;
         File file = new File(libPath, path);
@@ -111,7 +111,7 @@ public final class JniLoader {
       File file = file(path);
       deleteOnExit(file);
 
-      log.info("extracting " + url + " to " + file.getAbsoluteFile());
+      log.config("extracting " + url + " to " + file.getAbsoluteFile());
 
       ReadableByteChannel src = newChannel(in);
       @Cleanup FileChannel dest = new FileOutputStream(file).getChannel();
@@ -123,7 +123,7 @@ public final class JniLoader {
       return file;
     } catch (Throwable e) {
       if (e instanceof SecurityException || e instanceof IOException) {
-        log.log(INFO, "skipping extraction of " + path, e);
+        log.log(CONFIG, "skipping extraction of " + path, e);
         return null;
       } else throw new ExceptionInInitializerError(e);
     }
