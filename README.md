@@ -15,13 +15,24 @@ slightly faster startup times (tens of milliseconds during JVM startup).
 Installation
 ============
 
+The latest release is available from Maven Central, e.g.:
+
+```xml
+<dependency>
+  <groupId>com.github.fommil</groupId>
+  <artifactId>jniloader</artifactId>
+  <version>1.0</version>
+</dependency>
+```
+
+
 Snapshots are distributed on Sonatype's Snapshot Repository:
 
 ```xml
 <dependency>
   <groupId>com.github.fommil</groupId>
   <artifactId>jniloader</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.1-SNAPSHOT</version>
 </dependency>
 ```
 
