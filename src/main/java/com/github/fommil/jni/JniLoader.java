@@ -12,6 +12,8 @@ import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static java.io.File.createTempFile;
 import static java.nio.channels.Channels.newChannel;
@@ -34,7 +36,7 @@ public final class JniLoader {
 
   public static final String JNI_EXTRACT_DIR_PROP = "com.github.fommil.jni.dir";
 
-  static private boolean loaded;
+  private static final Set<String> loaded = new HashSet<String>();
 
   /**
    * Attempts to load a native library from the {@code java.library.path}
@@ -54,46 +56,55 @@ public final class JniLoader {
     if (paths == null || paths.length == 0)
       throw new ExceptionInInitializerError("invalid parameters");
 
-    String[] javaLibPath = System.getProperty("java.library.path").split(File.pathSeparator);
-
     for (String path : paths) {
-      if (loaded) return;
-      log.config("JNI LIB = " + path);
-      for (String libPath : javaLibPath) {
-        if (loaded) return;
-        File file = new File(libPath, path);
-        log.finest("checking " + file.getAbsolutePath());
-        if (file.exists())
-          liberalLoad(file.getAbsolutePath() + "/" + path);
+      String key = new File(path).getName();
+      if (loaded.contains(key)) {
+        log.info("already loaded " + path);
+        return;
       }
-      File extracted = extract(path);
-      if (extracted != null)
-        liberalLoad(extracted.getAbsolutePath());
     }
 
-    if (!loaded)
-      throw new ExceptionInInitializerError("unable to load from " + Arrays.toString(paths));
+    String[] javaLibPath = System.getProperty("java.library.path").split(File.pathSeparator);
+    for (String path : paths) {
+      log.config("JNI LIB = " + path);
+      for (String libPath : javaLibPath) {
+        File file = new File(libPath, path).getAbsoluteFile();
+        log.finest("checking " + file);
+        if (file.exists() && file.isFile() && liberalLoad(file))
+          return;
+      }
+      File extracted = extract(path);
+      if (extracted != null && liberalLoad(extracted))
+        return;
+    }
+
+    throw new ExceptionInInitializerError("unable to load from " + Arrays.toString(paths));
   }
 
-  private static void liberalLoad(String path) {
+  // return true if the file was loaded, otherwise false.
+  // side effect: files in the tmpdir that fail to load will be deleted
+  private static boolean liberalLoad(File file) {
     try {
-      log.finest("attempting to load " + path);
-      System.load(path);
-      log.info("successfully loaded " + path);
-      loaded = true;
+      log.finest("attempting to load " + file);
+      System.load(file.getAbsolutePath());
+      log.info("successfully loaded " + file);
+      loaded.add(file.getName());
+      return true;
     } catch (UnsatisfiedLinkError e) {
-      log.log(FINE, "skipping load of " + path, e);
+      log.log(FINE, "skipping load of " + file, e);
       String tmpdir = System.getProperty("java.io.tmpdir");
-      if (tmpdir != null && !tmpdir.isEmpty() && path.startsWith(tmpdir)) {
-        log.log(FINE, "deleting " + path);
+      if (tmpdir != null && tmpdir.trim().length() > 2 && file.getAbsolutePath().startsWith(tmpdir)) {
+        log.log(FINE, "deleting " + file);
         try {
-          new File(path).delete();
+          file.delete();
         } catch (Exception e2) {
-          log.info("failed to delete " + path);
+          log.info("failed to delete " + file);
         }
       }
+      return false;
     } catch (SecurityException e) {
-      log.log(FINE, "skipping load of " + path, e);
+      log.log(INFO, "skipping load of " + file, e);
+      return false;
     } catch (Throwable e) {
       throw new ExceptionInInitializerError(e);
     }
@@ -134,7 +145,7 @@ public final class JniLoader {
 
     String dir = System.getProperty(JNI_EXTRACT_DIR_PROP);
     if (dir == null)
-      return createTempFile("netlib", name);
+      return createTempFile("jniloader", name);
 
     File file = new File(dir, name);
     if (file.exists() && !file.isFile())
