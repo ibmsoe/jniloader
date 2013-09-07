@@ -25,7 +25,7 @@ public class JniNamer {
   }
 
   private static String arch() {
-    String arch = System.getProperty("os.arch").toLowerCase();
+    String arch = System.getProperty("os.arch", "").toLowerCase();
     if (arch.equals("x86") || arch.equals("i386") || arch.equals("i486") ||
         arch.equals("i586") || arch.equals("i686"))
       return "i686";
@@ -76,7 +76,7 @@ public class JniNamer {
   }
 
   private static String os() {
-    String os = System.getProperty("os.name").toLowerCase();
+    String os = System.getProperty("os.name", "").toLowerCase();
     if (os.startsWith("linux"))
       return "linux";
     if (os.startsWith("windows"))
