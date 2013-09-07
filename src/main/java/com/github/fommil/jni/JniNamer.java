@@ -2,6 +2,8 @@ package com.github.fommil.jni;
 
 import lombok.extern.java.Log;
 
+import java.io.File;
+
 import static java.util.logging.Level.WARNING;
 
 /**
@@ -61,11 +63,17 @@ public class JniNamer {
   private static String abi(String arch) {
     if (!arch.startsWith("arm"))
       return "";
-
     try {
       // http://docs.oracle.com/javase/tutorial/deployment/doingMoreWithRIA/properties.html
       for (String prop : new String[]{"sun.boot.library.path", "java.library.path", "java.home"}) {
-        if (System.getProperty(prop, "").matches(".*(gnueabihf|armhf).*"))
+        String value = System.getProperty(prop, "");
+        log.config(prop + ": " + value);
+        if (value.matches(".*(gnueabihf|armhf).*"))
+          return "hf";
+      }
+      for (String dir : new String[]{"/lib/arm-linux-gnueabihf", "/usr/lib/arm-linux-gnueabihf"}) {
+        File file = new File(dir);
+        if (file.exists())
           return "hf";
       }
       return "";
