@@ -106,7 +106,7 @@ public class JniNamer {
   }
 
   private static String extension(String os) {
-    if (os.equals("windows"))
+    if (os.equals("win"))
       return "dll";
     if (os.equals("osx"))
       return "jnilib";
