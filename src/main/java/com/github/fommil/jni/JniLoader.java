@@ -70,11 +70,11 @@ public final class JniLoader {
       for (String libPath : javaLibPath) {
         File file = new File(libPath, path).getAbsoluteFile();
         log.finest("checking " + file);
-        if (file.exists() && file.isFile() && liberalLoad(file))
+        if (file.exists() && file.isFile() && liberalLoad(file, path))
           return;
       }
       File extracted = extract(path);
-      if (extracted != null && liberalLoad(extracted))
+      if (extracted != null && liberalLoad(extracted, path))
         return;
     }
 
@@ -83,12 +83,12 @@ public final class JniLoader {
 
   // return true if the file was loaded, otherwise false.
   // side effect: files in the tmpdir that fail to load will be deleted
-  private static boolean liberalLoad(File file) {
+  private static boolean liberalLoad(File file, String name) {
     try {
       log.finest("attempting to load " + file);
       System.load(file.getAbsolutePath());
       log.info("successfully loaded " + file);
-      loaded.add(file.getName());
+      loaded.add(name);
       return true;
     } catch (UnsatisfiedLinkError e) {
       log.log(FINE, "skipping load of " + file, e);
