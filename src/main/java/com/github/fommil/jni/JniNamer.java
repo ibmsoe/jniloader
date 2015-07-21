@@ -51,6 +51,8 @@ public class JniNamer {
       return "risc2";
     if (arch.equals("ppc"))
       return "ppc";
+    if (arch.equals("ppc64le"))
+      return "ppc64le";
     if (arch.startsWith("ppc"))
       return "ppc64";
 
